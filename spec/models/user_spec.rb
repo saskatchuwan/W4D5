@@ -1,4 +1,5 @@
 require 'rails_helper'
+require 'user.rb'
 
 #class and instance methods
   #find_by_credentials
@@ -15,7 +16,7 @@ RSpec.describe User, type: :model do
     it {should validate_uniqueness_of (:session_token)}
     it {should validate_uniqueness_of (:username)}
 
-    it {should validate_length_of (:password).is_at_least(6)}
+    it {should validate_length_of(:password).is_at_least(6)}
   end
   
   describe 'associations' do
@@ -23,22 +24,22 @@ RSpec.describe User, type: :model do
     it {should have_many(:comments)}
   end
 
-  describe '#ensure_session_token' do
+  describe 'User#ensure_session_token' do
     it 'generates session token for user' do
       expect(subject.session_token).to_not be_nil
     end
   end
   
-  describe '#is_password?(password)' do
+  describe 'User#is_password?(password)' do
     it 'checks if input password matches user\'s saved password' do
       expect(BCrypt::Password.new(subject.password_digest)).to eq(subject.password)
     end
   end 
 
-  describe '#password=(password)' do
+  describe 'User#password=(password)' do
     it 'encrypts the password' do
-      expect(BCrypt::Password).to_receive(:create).with(subject.password)
-      User.new(username: 'Someuser', password:'password1234')
+      expect(BCrypt::Password).to receive(:create).with(subject.password)
+      subject.password = subject.password
     end
 
     it 'doesn\'t persist password to database' do
@@ -48,12 +49,32 @@ RSpec.describe User, type: :model do
     end
   end
 
-  describe '#reset_session_token!' do
+  describe 'User#reset_session_token!' do
     it 'resets user\'s session token' do
       old_token = subject.session_token
       subject.reset_session_token!
       expect(old_token).to_not eq(subject.session_token)
     end
+  end
+
+  #subject(:user) {User.new(username: 'liat', password:'password123')}
+
+  describe 'User::find_by_credentials' do
+    context 'with valid params' do
+      it 'finds user in database by username and password' do
+        subject.save!
+        expect(User.find_by_credentials('liat', 'password123')).to eq(subject)
+        
+      end
+    end
+
+    context 'with invalid params' do
+      it 'does not find user in database by username and password' do
+        subject.save!
+        expect(User.find_by_credentials('sarah','password123')).to eq(nil)
+      end
+    end
+
   end
 
 end
