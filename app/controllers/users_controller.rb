@@ -23,7 +23,7 @@ class UsersController < ApplicationController
 
   def edit
     @user = User.find_by_credentials(user_params)
-    render: edit
+    render :edit
   end
 
   # def update
